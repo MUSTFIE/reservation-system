@@ -22,7 +22,7 @@
             margin: 0 auto;
             background: #fff;
             border-radius: 12px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 15px rgba(0,0,0.1);
             padding: 30px;
         }
         h1 {
@@ -302,7 +302,7 @@
             return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
         }
 
-        // 載入頁面自動渲染日期按鈕
+        // 載入頁面自動渲染日期
         function initDateList() {
             const dateContainer = document.getElementById("dateList");
             dateContainer.innerHTML = "";
@@ -316,7 +316,6 @@
                     document.querySelectorAll(".date-item").forEach(el => el.classList.remove("selected"));
                     this.classList.add("selected");
                     selectDate = this.dataset.date;
-                    // 點擊日期時強制拉取最新數據再渲染時段
                     loadLatestData(()=>{
                         generateTimeList();
                     });
@@ -325,7 +324,7 @@
             })
         }
 
-        // 單獨封裝拉取雲端數據函數（供點日期、頁面載入調用）
+        // 讀取雲端最新數據
         function loadLatestData(callback) {
             reserveRef.once("value", snapshot => {
                 const data = snapshot.val();
@@ -336,7 +335,7 @@
             });
         }
 
-        // 根據選取日期渲染時段與剩餘名額
+        // 渲染時段（重點修復count篩選邏輯）
         function generateTimeList() {
             const timeContainer = document.getElementById("timeList");
             timeContainer.innerHTML = "";
@@ -345,12 +344,15 @@
             let afternoonTimes = ["15:00-15:30", "15:30-16:00", "16:00-16:30", "16:30-17:00", "17:00-17:30"];
             let allTimes = [...morningTimes, ...afternoonTimes];
             if (!selectDate) return;
+
             allTimes.forEach(time => {
-                let count = reserveList.filter(item => item.date === selectDate && item.time).length;
+                // 修正：同時匹配日期+時段，不再只判斷日期
+                let count = reserveList.filter(item => item.date === selectDate && item.time === time).length;
                 let statusClass = "";
                 if (count === 0) statusClass = "available";
                 else if (count === 1) statusClass = "half";
                 else statusClass = "full";
+
                 let item = document.createElement("span");
                 item.className = `time-item ${statusClass}`;
                 item.innerText = `${time} (${count}/2)`;
@@ -366,27 +368,28 @@
             })
         }
 
-        // DOM載完先渲染日期，同時拉取一次雲端數據
+        // DOM載入完成初始化
         document.addEventListener("DOMContentLoaded", function(){
             initDateList();
             loadLatestData();
         });
 
-        // 實時監聽雲端數據變化（新增/刪預約自動更新所有人頁面）
+        // 實時監聽雲端變化
         reserveRef.on('value', function(snapshot) {
             const data = snapshot.val();
             reserveList = data ? Object.values(data) : [];
             if (selectDate) generateTimeList();
         }, err=>{
-            console.error("實時監聽錯誤：",err);
+            console.error("監聽錯誤：",err);
         });
 
-        // 提交預約（已修復成功頁時段空白問題）
+        // 提交預約（成功頁時段固定使用臨時變數，不再空白）
         function submitReserve() {
             const name = document.getElementById("userName").value.trim();
             const email = document.getElementById("userEmail").value.trim();
             const msgDom = document.getElementById("resMsg");
             msgDom.className = "msg";
+
             if (!selectDate) {
                 msgDom.innerText = "請選擇參觀日期 / Please select visit date";
                 msgDom.className = "msg error";
@@ -407,12 +410,19 @@
                 msgDom.className = "msg error";
                 return;
             }
-            const count = reserveList.filter(x=>x.date===selectDate && x.time===selectTime).length;
+
+            // 檢查當前時段人數
+            const count = reserveList.filter(item => item.date === selectDate && item.time === selectTime).length;
             if(count >= 2){
-                msgDom.innerText = "該時段已額滿，無法預約 / This time slot is full";
+                msg.innerText = "該時段已額滿，無法預約 / This time slot is full";
                 msgDom.className = "msg error";
                 return;
             }
+
+            // 先存當前選擇，再提交
+            const tempVisitDate = selectDate;
+            const tempVisitTime = selectTime;
+
             const newReserve = {
                 date: selectDate,
                 time: selectTime,
@@ -420,12 +430,10 @@
                 email,
                 createTime: new Date().getTime()
             };
+
             reserveRef.push(newReserve).then(()=>{
-                // 關鍵：先用臨時變數存值，再清空全域
-                const tempDate = selectDate;
-                const tempTime = selectTime;
                 let weekText = "";
-                switch(tempDate){
+                switch(tempVisitDate){
                     case "2026-08-17": weekText = "星期一 / Monday"; break;
                     case "2026-08-18": weekText = "星期二 / Tuesday"; break;
                     case "2026-08-19": weekText = "星期三 / Wednesday"; break;
@@ -437,20 +445,23 @@
                     case "2026-08-27": weekText = "星期四 / Thursday"; break;
                     case "2026-08-28": weekText = "星期五 / Friday"; break;
                 }
+                // 使用臨時變數渲染，永遠不會空白
                 const resultHtml = `
-                    <p><strong>預約參觀日期 / Visit Date：</strong>${tempDate}（${weekText}）</p>
-                    <p><strong>預約參觀時段 / Time Slot：</strong>${tempTime}</p>
+                    <p><strong>預約參觀日期 / Visit Date：</strong>${tempVisitDate}（${weekText}）</p>
+                    <p><strong>預約參觀時段 / Time Slot：</strong>${tempVisitTime}</p>
                     <p><strong>參觀地點 / Venue：</strong>康澤創新科技中心 / MUST LIU's Innovation and Technology Center</p>
                     <p style="margin-top:20px; font-size:16px; color:#555;">如有查詢可聯絡 / For inquiries: FIE Fergus<br />聯絡郵箱 / Contact Email：wwtse@must.edu.mo</p>
                 `;
                 document.getElementById("resultInfo").innerHTML = resultHtml;
-                // 渲染完再清空選擇變數與表單
+
+                // 渲染完才清空全域變數
                 selectDate = "";
                 selectTime = "";
                 document.getElementById("userName").value = "";
                 document.getElementById("userEmail").value = "";
                 document.querySelectorAll(".date-item").forEach(el => el.classList.remove("selected"));
                 document.getElementById("timeList").innerHTML = "";
+
                 switchTab("resultTab");
             }).catch(err=>{
                 msgDom.innerText = "提交失敗：" + err.message;
