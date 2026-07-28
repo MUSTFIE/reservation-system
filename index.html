@@ -365,76 +365,80 @@
 });
 
         function submitReserve() {
-            const name = document.getElementById("userName").value.trim();
-            const email = document.getElementById("userEmail").value.trim();
-            const msgDom = document.getElementById("resMsg");
-            msgDom.className = "msg";
-            if (!selectDate) {
-                msgDom.innerText = "請選擇參觀日期 / Please select visit date";
-                msgDom.className = "msg error";
-                return;
-            }
-            if (!selectTime) {
-                msgDom.innerText = "請選擇可預約的參觀時段 / Please select an available time slot";
-                msgDom.className = "msg error";
-                return;
-            }
-            if (!name) {
-                msgDom.innerText = "請輸入預約人全名 / Please enter your full name";
-                msgDom.className = "msg error";
-                return;
-            }
-            if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
-                msgDom.innerText = "電郵格式不正確，請填寫完整有效電子郵件。格式範例：acac@must.edu.mo。Email format is incorrect, please enter a valid complete email address. Example: acac@must.edu.mo";
-                msgDom.className = "msg error";
-                return;
-            }
-            const count = reserveList.filter(x=>x.date===selectDate && x.time===selectTime).length;
-            if(count >= 2){
-                msgDom.innerText = "該時段已額滿，無法預約 / This time slot is full";
-                msgDom.className = "msg error";
-                return;
-            }
-            const newReserve = {
-                date: selectDate,
-                time: selectTime,
-                name,
-                email,
-                createTime: new Date().getTime()
-            };
-            reserveRef.push(newReserve).then(()=>{
-                let weekText = "";
-                switch(selectDate){
-                    case "2026-08-17": weekText = "星期一 / Monday"; break;
-                    case "2026-08-18": weekText = "星期二 / Tuesday"; break;
-                    case "2026-08-19": weekText = "星期三 / Wednesday"; break;
-                    case "2026-08-20": weekText = "星期四 / Thursday"; break;
-                    case "2026-08-21": weekText = "星期五 / Friday"; break;
-                    case "2026-08-24": weekText = "星期一 / Monday"; break;
-                    case "2026-08-25": weekText = "星期二 / Tuesday"; break;
-                    case "2026-08-26": weekText = "星期三 / Wednesday"; break;
-                    case "2026-08-27": weekText = "星期四 / Thursday"; break;
-                    case "2026-08-28": weekText = "星期五 / Friday"; break;
-                }
-                const resultHtml = `
-                    <p><strong>預約參觀日期 / Visit Date：</strong>${selectDate}（${weekText}）</p>
-                    <p><strong>預約參觀時段 / Time Slot：</strong>${selectTime}</p>
-                    <p><strong>參觀地點 / Venue：</strong>康澤創新科技中心 / MUST LIU's Innovation and Technology Center</p>
-                    <p style="margin-top:20px; font-size:16px; color:#555;">如有查詢可聯絡 / For inquiries: FIE Fergus<br />聯絡郵箱 / Contact Email：wwtse@must.edu.mo</p>
-                `;
-                document.getElementById("resultInfo").innerHTML = resultHtml;
-                selectDate = "";
-                selectTime = "";
-                document.getElementById("userName").value = "";
-                document.getElementById("userEmail").value = "";
-                document.querySelectorAll(".date-item").forEach(el => el.classList.remove("selected"));
-                document.getElementById("timeList").innerHTML = "";
-                switchTab("resultTab");
-            }).catch(err=>{
-                msgDom.innerText = "提交失敗：" + err.message;
-                msgDom.className = "msg error";
-            });
+    const name = document.getElementById("userName").value.trim();
+    const email = document.getElementById("userEmail").value.trim();
+    const msgDom = document.getElementById("resMsg");
+    msgDom.className = "msg";
+    if (!selectDate) {
+        msgDom.innerText = "請選擇參觀日期 / Please select visit date";
+        msgDom.className = "msg error";
+        return;
+    }
+    if (!selectTime) {
+        msgDom.innerText = "請選擇可預約的參觀時段 / Please select an available time slot";
+        msgDom.className = "msg error";
+        return;
+    }
+    if (!name) {
+        msgDom.innerText = "請輸入預約人全名 / Please enter your full name";
+        msgDom.className = "msg error";
+        return;
+    }
+    if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
+        msgDom.innerText = "電郵格式不正確，請填寫完整有效電子郵件。格式範例：acac@must.edu.mo。Email format is incorrect, please enter a valid complete email address. Example: acac@must.edu.mo";
+        msgDom.className = "msg error";
+        return;
+    }
+    const count = reserveList.filter(x=>x.date===selectDate && x.time===selectTime).length;
+    if(count >= 2){
+        msgDom.innerText = "該時段已額滿，無法預約 / This time slot is full";
+        msgDom.className = "msg error";
+        return;
+    }
+    const newReserve = {
+        date: selectDate,
+        time: selectTime,
+        name,
+        email,
+        createTime: new Date().getTime()
+    };
+    reserveRef.push(newReserve).then(()=>{
+        // 關鍵：先存臨時變數，渲染完成頁再清空全域
+        const tempDate = selectDate;
+        const tempTime = selectTime;
+        let weekText = "";
+        switch(tempDate){
+            case "2026-08-17": weekText = "星期一 / Monday"; break;
+            case "2026-08-18": weekText = "星期二 / Tuesday"; break;
+            case "2026-08-19": weekText = "星期三 / Wednesday"; break;
+            case "2026-08-20": weekText = "星期四 / Thursday"; break;
+            case "2026-08-21": weekText = "星期五 / Friday"; break;
+            case "2026-08-24": weekText = "星期一 / Monday"; break;
+            case "2026-08-25": weekText = "星期二 / Tuesday"; break;
+            case "2026-08-26": weekText = "星期三 / Wednesday"; break;
+            case "2026-08-27": weekText = "星期四 / Thursday"; break;
+            case "2026-08-28": weekText = "星期五 / Friday"; break;
         }
+        const resultHtml = `
+            <p><strong>預約參觀日期 / Visit Date：</strong>${tempDate}（${weekText}）</p>
+            <p><strong>預約參觀時段 / Time Slot：</strong>${tempTime}</p>
+            <p><strong>參觀地點 / Venue：</strong>康澤創新科技中心 / MUST LIU's Innovation and Technology Center</p>
+            <p style="margin-top:20px; font-size:16px; color:#555;">如有查詢可聯絡 / For inquiries: FIE Fergus<br />聯絡郵箱 / Contact Email：wwtse@must.edu.mo</p>
+        `;
+        document.getElementById("resultInfo").innerHTML = resultHtml;
+        // 渲染完再清空全域變數與表單
+        selectDate = "";
+        selectTime = "";
+        document.getElementById("userName").value = "";
+        document.getElementById("userEmail").value = "";
+        document.querySelectorAll(".date-item").forEach(el => el.classList.remove("selected"));
+        document.getElementById("timeList").innerHTML = "";
+        switchTab("resultTab");
+    }).catch(err=>{
+        msgDom.innerText = "提交失敗：" + err.message;
+        msgDom.className = "msg error";
+    });
+}
 
         function backUserPage() {
             switchTab("userTab");
