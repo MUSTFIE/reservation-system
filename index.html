@@ -81,7 +81,6 @@
         .tab.active {
             display: block;
         }
-        /* 日期選擇樣式 - 平鋪展示 */
         .date-list {
             display: flex;
             flex-wrap: wrap;
@@ -99,7 +98,6 @@
             background-color: #2980b9;
             color: #fff;
         }
-        /* 時段狀態三色樣式 */
         .time-item {
             display: inline-block;
             padding: 8px 15px;
@@ -165,7 +163,6 @@
             height: 16px;
             border-radius: 3px;
         }
-        /* 預約成功結果頁樣式 */
         .result-box {
             text-align: center;
             padding: 40px 20px;
@@ -197,9 +194,10 @@
             display:inline-block;
         }
     </style>
-    <!-- Firebase CDN -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
+
+    <!-- Firebase 9 compat 相容版，無import/export報錯 -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script>
         // ========== 替換成你自己的 Firebase Config ==========
         const firebaseConfig = {
@@ -219,11 +217,10 @@
 <body>
     <div class="container">
         <h1>智能航空仿真前沿技術聯合研究中心 參觀預約系統<br>MUST Joint Research Center for Frontier Technologies in Intelligent Aviation Simulation - Visit Reservation System</h1>
-        <!-- 用戶預約頁面 -->
         <div id="userTab" class="tab active">
             <div class="tip-box">
                 <strong>預約須知 / Reservation Notice：</strong><br />
-                1. 預約開放時間 / Booking Period：2026年7月06日 - 2026年7月10日<br />
+                1. 預約開放時間 / Booking Period：2026年8月17日 - 8月21日、8月24日 - 8月28日<br />
                 2. 開放時段 / Opening Hours：每日 09:30-12:30、15:00-17:30 (Daily)<br />
                 3. 每30分鐘為一個預約時段，單一時段限2人預約，額滿即止 / Each time slot lasts 30 minutes, max 2 persons per slot. 
             </div>
@@ -260,7 +257,6 @@
             <div class="msg" id="resMsg"></div>
             <button class="btn btn-primary" onclick="submitReserve()">提交預約 / Submit Reservation</button>
         </div>
-        <!-- 預約成功結果頁面 -->
         <div id="resultTab" class="tab">
             <div class="result-box">
                 <h2>✅ 預約成功 / Reservation Successful</h2>
@@ -271,24 +267,42 @@
         </div>
     </div>
     <script>
-        // 全域變量
         let reserveList = [];
         let selectDate = "";
         let selectTime = "";
-        // 日期清單
-        const dateArr = ["2026-07-06", "2026-07-07", "2026-07-08", "2026-07-09", "2026-07-10"];
-        const dateTextArr = [
-            "07月06日（星期一) / Monday, 06 July 2026",
-            "07月07日（星期二)/ Tuesday, 07 July 2026",
-            "07月08日（星期三) / Wednesday, 08 July 2026",
-            "07月09日（星期四) / Thursday, 09 July 2026",
-            "07月10日（星期五) / Friday, 10 July 2026"
+        // 新日期陣列：8.17-21、8.24-28
+        const dateArr = [
+            "2026-08-17",
+            "2026-08-18",
+            "2026-08-19",
+            "2026-08-20",
+            "2026-08-21",
+            "2026-08-24",
+            "2026-08-25",
+            "2026-08-26",
+            "2026-08-27",
+            "2026-08-28"
         ];
+        const dateTextArr = [
+            "08月17日（星期一) / Monday, 17 Aug 2026",
+            "08月18日（星期二)/ Tuesday, 18 Aug 2026",
+            "08月19日（星期三) / Wednesday, 19 Aug 2026",
+            "08月20日（星期四) / Thursday, 20 Aug 2026",
+            "08月21日（星期五) / Friday, 21 Aug 2026",
+            "08月24日（星期一) / Monday, 24 Aug 2026",
+            "08月25日（星期二)/ Tuesday, 25 Aug 2026",
+            "08月26日（星期三) / Wednesday, 26 Aug 2026",
+            "08月27日（星期四) / Thursday, 27 Aug 2026",
+            "08月28日（星期五) / Friday, 28 Aug 2026"
+        ];
+
         function formatTime(timestamp){
             if(!timestamp) return "";
             const d = new Date(timestamp);
             return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
         }
+
+        // 渲染日期選擇框（優先執行，DOM載完立刻顯示日期）
         function initDateList() {
             const dateContainer = document.getElementById("dateList");
             dateContainer.innerHTML = "";
@@ -307,6 +321,8 @@
                 dateContainer.appendChild(item);
             })
         }
+
+        // 渲染時段
         function generateTimeList() {
             const timeContainer = document.getElementById("timeList");
             timeContainer.innerHTML = "";
@@ -335,15 +351,19 @@
                 timeContainer.appendChild(item);
             })
         }
-        // 實時監聽 Firebase 雲端數據
+
+        // DOM載完立刻渲染日期，保證頁面一打開就看得到日期
+        document.addEventListener("DOMContentLoaded", function(){
+            initDateList();
+        });
+
+        // Firebase實時監聽數據，更新時段人數
         reserveRef.onValue(snapshot => {
             const data = snapshot.val();
             reserveList = data ? Object.values(data) : [];
             if (selectDate) generateTimeList();
         });
-        window.onload = function () {
-            initDateList();
-        }
+
         function submitReserve() {
             const name = document.getElementById("userName").value.trim();
             const email = document.getElementById("userEmail").value.trim();
@@ -385,11 +405,16 @@
             reserveRef.push(newReserve).then(()=>{
                 let weekText = "";
                 switch(selectDate){
-                    case "2026-07-06": weekText = "星期一 / Monday"; break;
-                    case "2026-07-07": weekText = "星期二 / Tuesday"; break;
-                    case "2026-07-08": weekText = "星期三 / Wednesday"; break;
-                    case "2026-07-09": weekText = "星期四 / Thursday"; break;
-                    case "2026-07-10": weekText = "星期五 / Friday"; break;
+                    case "2026-08-17": weekText = "星期一 / Monday"; break;
+                    case "2026-08-18": weekText = "星期二 / Tuesday"; break;
+                    case "2026-08-19": weekText = "星期三 / Wednesday"; break;
+                    case "2026-08-20": weekText = "星期四 / Thursday"; break;
+                    case "2026-08-21": weekText = "星期五 / Friday"; break;
+                    case "2026-08-24": weekText = "星期一 / Monday"; break;
+                    case "2026-08-25": weekText = "星期二 / Tuesday"; break;
+                    case "2026-08-26": weekText = "星期三 / Wednesday"; break;
+                    case "2026-08-27": weekText = "星期四 / Thursday"; break;
+                    case "2026-08-28": weekText = "星期五 / Friday"; break;
                 }
                 const resultHtml = `
                     <p><strong>預約參觀日期 / Visit Date：</strong>${selectDate}（${weekText}）</p>
@@ -410,10 +435,12 @@
                 msgDom.className = "msg error";
             });
         }
+
         function backUserPage() {
             switchTab("userTab");
             initDateList();
         }
+
         function switchTab(tabId) {
             document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
             document.getElementById(tabId).classList.add("active");
