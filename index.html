@@ -161,7 +161,7 @@
         .status-block {
             width: 16px;
             height: 16px;
-            border-radius: 3;
+            border-radius: 3px;
         }
         .result-box {
             text-align: center;
@@ -195,11 +195,11 @@
         }
     </style>
 
-    <!-- Firebase 9 compat 相容CDN -->
+    <!-- Firebase 9 compat 相容CDN，無import/export報錯 -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script>
-        // 替換成你的 Firebase Config
+        // ========== 替換成你自己的 Firebase Config ==========
         const firebaseConfig = {
             apiKey: "AIzaSyA31U_eQqVVgUuoUU5-7rkyEthLJ1b8sHY",
             authDomain: "aviation-reserve.firebaseapp.com",
@@ -270,6 +270,7 @@
         let reserveList = [];
         let selectDate = "";
         let selectTime = "";
+        // 預約日期陣列：8.17-21、8.24-28
         const dateArr = [
             "2026-08-17",
             "2026-08-18",
@@ -301,6 +302,7 @@
             return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
         }
 
+        // 載入頁面自動渲染日期按鈕
         function initDateList() {
             const dateContainer = document.getElementById("dateList");
             dateContainer.innerHTML = "";
@@ -314,12 +316,27 @@
                     document.querySelectorAll(".date-item").forEach(el => el.classList.remove("selected"));
                     this.classList.add("selected");
                     selectDate = this.dataset.date;
-                    generateTimeList();
+                    // 點擊日期時強制拉取最新數據再渲染時段
+                    loadLatestData(()=>{
+                        generateTimeList();
+                    });
                 }
                 dateContainer.appendChild(item);
             })
         }
 
+        // 單獨封裝拉取雲端數據函數（供點日期、頁面載入調用）
+        function loadLatestData(callback) {
+            reserveRef.once("value", snapshot => {
+                const data = snapshot.val();
+                reserveList = data ? Object.values(data) : [];
+                if(callback) callback();
+            }, err=>{
+                console.error("讀取數據失敗：",err);
+            });
+        }
+
+        // 根據選取日期渲染時段與剩餘名額
         function generateTimeList() {
             const timeContainer = document.getElementById("timeList");
             timeContainer.innerHTML = "";
@@ -329,7 +346,7 @@
             let allTimes = [...morningTimes, ...afternoonTimes];
             if (!selectDate) return;
             allTimes.forEach(time => {
-                let count = reserveList.filter(item => item.date === selectDate && item.time === time).length;
+                let count = reserveList.filter(item => item.date === selectDate && item.time).length;
                 let statusClass = "";
                 if (count === 0) statusClass = "available";
                 else if (count === 1) statusClass = "half";
@@ -349,17 +366,22 @@
             })
         }
 
+        // DOM載完先渲染日期，同時拉取一次雲端數據
         document.addEventListener("DOMContentLoaded", function(){
             initDateList();
+            loadLatestData();
         });
 
-        // 重點修正：變數名改為 reserveRef，不再寫 reserve
+        // 實時監聽雲端數據變化（新增/刪預約自動更新所有人頁面）
         reserveRef.on('value', function(snapshot) {
             const data = snapshot.val();
             reserveList = data ? Object.values(data) : [];
             if (selectDate) generateTimeList();
+        }, err=>{
+            console.error("實時監聽錯誤：",err);
         });
 
+        // 提交預約（已修復成功頁時段空白問題）
         function submitReserve() {
             const name = document.getElementById("userName").value.trim();
             const email = document.getElementById("userEmail").value.trim();
@@ -399,6 +421,7 @@
                 createTime: new Date().getTime()
             };
             reserveRef.push(newReserve).then(()=>{
+                // 關鍵：先用臨時變數存值，再清空全域
                 const tempDate = selectDate;
                 const tempTime = selectTime;
                 let weekText = "";
@@ -421,6 +444,7 @@
                     <p style="margin-top:20px; font-size:16px; color:#555;">如有查詢可聯絡 / For inquiries: FIE Fergus<br />聯絡郵箱 / Contact Email：wwtse@must.edu.mo</p>
                 `;
                 document.getElementById("resultInfo").innerHTML = resultHtml;
+                // 渲染完再清空選擇變數與表單
                 selectDate = "";
                 selectTime = "";
                 document.getElementById("userName").value = "";
