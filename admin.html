@@ -11,7 +11,6 @@
             box-sizing: border-box;
             font-family: "Microsoft JhengHei", sans-serif;
         }
-
         body {
             background-color: #f5f7fa;
             color: #333;
@@ -21,7 +20,6 @@
             padding-right: 20px;
             padding-bottom: 20px;
         }
-
         /* 全域頂部導覽列 */
         .top-nav-bar {
             position: fixed;
@@ -94,7 +92,6 @@
             font-size: 28px;
             cursor: pointer;
         }
-
         .container {
             max-width: 1000px;
             margin: 0 auto;
@@ -103,7 +100,6 @@
             box-shadow: 0 2px 15px rgba(0,0,0,0.1);
             padding: 30px;
         }
-
         h1 {
             text-align: center;
             color: #1a5276;
@@ -121,7 +117,6 @@
             margin-bottom:15px;
             color:#1a5276;
         }
-
         .form-group {
             margin-bottom: 20px;
         }
@@ -148,7 +143,6 @@
             width:auto;
             min-width:260px;
         }
-
         .btn {
             padding: 12px 25px;
             border: none;
@@ -174,14 +168,12 @@
         .btn-gray {
             background:#ccc;
         }
-
         .tab {
             display: none;
         }
         .tab.active {
             display: block;
         }
-
         table {
             width: 100%;
             border-collapse: collapse;
@@ -196,7 +188,6 @@
             background-color: #f0f5fa;
             color: #1a5276;
         }
-
         .admin-login {
             max-width: 400px;
             margin: 50px auto;
@@ -225,6 +216,24 @@
             margin-bottom:25px;
         }
     </style>
+    <!-- Firebase CDN -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
+    <script>
+        // ========== 替換成你自己的 Firebase Config ==========
+        const firebaseConfig = {
+           apiKey: "AIzaSyA31U_eQqVVgUuoUU5-7rkyEthLJ1b8sHY",
+            authDomain: "aviation-reserve.firebaseapp.com",
+            databaseURL: "https://aviation-reserve-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "aviation-reserve",
+            storageBucket: "aviation-reserve.firebasestorage.app",
+            messagingSenderId: "296856982563",
+            appId: "1:296856982563:web:5fab281efd974897d64d96"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const reserveRef = db.ref("aviationReserve");
+    </script>
 </head>
 <body>
     <!-- 全域頂部導覽 -->
@@ -240,10 +249,8 @@
         <a href="test.html" onclick="closeMobileMenu()">測試系統頁面 / Test System Page</a>
         <a href="admin.html" onclick="closeMobileMenu()">管理員後台 / Admin Panel</a>
     </div>
-
     <div class="container">
         <h1>管理員預約管理後台 / Admin Reservation Management</h1>
-
         <!-- 登入頁 -->
         <div id="loginTab" class="tab active">
             <div class="admin-login">
@@ -257,11 +264,9 @@
                 <button class="btn btn-gray" style="width:100%;margin-top:15px" onclick="location.href='index.html'">返回預約頁 / Back to reservation</button>
             </div>
         </div>
-
         <!-- 管理操作後台 -->
         <div id="panelTab" class="tab">
             <p style="margin:10px 0;">可手動新增、查看、刪除所有參觀預約記錄，自動記錄填表提交時間 / Manually add, view and delete reservation records. Submission time will be recorded automatically.</p>
-
             <div class="add-box">
                 <h3>手動新增預約 / Add New Reservation</h3>
                 <div class="form-group">
@@ -301,7 +306,6 @@
                 <div class="msg" id="adminResMsg"></div>
                 <button class="btn btn-primary" onclick="adminAddReserve()">確認新增預約 / Confirm Add</button>
             </div>
-
             <h3>所有預約記錄列表 / All Reservation Records</h3>
             <!-- 雙重篩選：日期篩選 + 預約時段排序 -->
             <div class="filter-row">
@@ -314,7 +318,6 @@
                     <option value="2026-07-09">2026-07-09 星期四</option>
                     <option value="2026-07-10">2026-07-10 星期五</option>
                 </select>
-
                 <label>時段排序 / Time Sort：</label>
                 <select id="sortTimeSelect" onchange="renderReserveTable()">
                     <option value="timeAsc">預約時段由近至遠（早時段在上，預設）</option>
@@ -337,7 +340,6 @@
             <button class="btn btn-gray" style="margin-top:20px" onclick="location.href='index.html'">返回預約頁面 / Back to Reservation Page</button>
         </div>
     </div>
-
     <script>
         // 漢堡選單
         const openBtn = document.getElementById('openMenuBtn');
@@ -349,9 +351,9 @@
         openBtn.addEventListener('click',openMobileMenu);
         closeBtn.addEventListener('click',closeMobileMenu);
         mask.addEventListener('click',closeMobileMenu);
-
         const ADMIN_PWD = "3735";
         let reserveList = [];
+        let reserveMap = {}; // key: firebase唯一id
         // 固定時段順序，用於時段排序對照
         const timeOrder = [
             "09:30-10:00",
@@ -366,53 +368,48 @@
             "16:30-17:00",
             "17:00-17:30"
         ];
-
         function formatTime(timestamp){
             if(!timestamp) return "";
             const d = new Date(timestamp);
             return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
         }
-
-        function loadData(){
-            reserveList = JSON.parse(localStorage.getItem("aviationReserve")) || [];
-        }
-
+        // 實時監聽雲端數據
+        reserveRef.onValue(snapshot=>{
+            reserveList = [];
+            reserveMap = {};
+            snapshot.forEach(child=>{
+                const key = child.key;
+                const val = child.val();
+                val._key = key;
+                reserveList.push(val);
+                reserveMap[key] = val;
+            })
+            if(document.getElementById("panelTab").classList.contains("active")){
+                renderReserveTable();
+            }
+        });
         function renderReserveTable() {
-            loadData();
             const tbody = document.getElementById("adminTableBody");
             const filterVal = document.getElementById("filterDateSelect").value;
             const sortType = document.getElementById("sortTimeSelect").value;
             tbody.innerHTML = "";
-
             // 1. 先按日期篩選
             let showList = reserveList;
             if(filterVal !== "all"){
                 showList = reserveList.filter(item => item.date === filterVal);
             }
-
             // 2. 按預約時段先後排序
             showList.sort((a,b)=>{
                 const idxA = timeOrder.indexOf(a.time);
                 const idxB = timeOrder.indexOf(b.time);
                 if(sortType === "timeAsc"){
-                    // 由近至遠：早時段排前面
                     return idxA - idxB;
                 }else{
-                    // 由遠至近：晚時段排前面
                     return idxB - idxA;
                 }
             });
-
             // 3. 渲染表格
             showList.forEach((item)=>{
-                // 取得原始陣列索引，刪除功能正常運作
-                const realIdx = reserveList.findIndex(x=>
-                    x.date===item.date &&
-                    x.time===item.time &&
-                    x.name===item.name &&
-                    x.email===item.email &&
-                    x.createTime===item.createTime
-                );
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
                     <td>${item.date}</td>
@@ -420,12 +417,11 @@
                     <td>${item.name}</td>
                     <td>${item.email}</td>
                     <td>${formatTime(item.createTime)}</td>
-                    <td><button class="btn btn-danger" onclick="delReserve(${realIdx})">刪除 / Delete</button></td>
+                    <td><button class="btn btn-danger" onclick="delReserve('${item._key}')">刪除 / Delete</button></td>
                 `;
                 tbody.appendChild(tr);
             })
         }
-
         function adminLogin() {
             const pwd = document.getElementById("adminPwd").value.trim();
             const msg = document.getElementById("loginMsg");
@@ -441,15 +437,13 @@
                 msg.className = "msg error";
             }
         }
-
         function adminAddReserve(){
-            loadData();
             const date = document.getElementById("adminResDate").value;
             const time = document.getElementById("adminResTime").value;
             const name = document.getElementById("adminResName").value.trim();
             const email = document.getElementById("adminResEmail").value.trim();
             const msg = document.getElementById("adminResMsg");
-
+            msg.className = "msg";
             if(!name){
                 msg.innerText = "請輸入預約人全名";
                 msg.className = "msg error";
@@ -470,25 +464,25 @@
                 date,time,name,email,
                 createTime: new Date().getTime()
             };
-            reserveList.push(newItem);
-            localStorage.setItem("aviationReserve", JSON.stringify(reserveList));
-            document.getElementById("adminResName").value = "";
-            document.getElementById("adminResEmail").value = "";
-            msg.innerText = "手動新增預約成功！";
-            msg.className = "msg success";
-            renderReserveTable();
+            reserveRef.push(newItem).then(()=>{
+                document.getElementById("adminResName").value = "";
+                document.getElementById("adminResEmail").value = "";
+                msg.innerText = "手動新增預約成功！";
+                msg.className = "msg success";
+            }).catch(err=>{
+                msg.innerText = "新增失敗："+err.message;
+                msg.className = "msg error";
+            });
         }
-
-        function delReserve(idx){
+        function delReserve(key){
             if(confirm("確定刪除此筆預約？")){
-                loadData();
-                reserveList.splice(idx,1);
-                localStorage.setItem("aviationReserve", JSON.stringify(reserveList));
-                renderReserveTable();
-                alert("刪除完成");
+                reserveRef.child(key).remove().then(()=>{
+                    alert("刪除完成");
+                }).catch(err=>{
+                    alert("刪除失敗："+err.message);
+                })
             }
         }
-
         function switchTab(tabId){
             document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
             document.getElementById(tabId).classList.add("active");
