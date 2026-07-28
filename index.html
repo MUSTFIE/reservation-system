@@ -358,11 +358,11 @@
         });
 
         // Firebase實時監聽數據，更新時段人數
-        reserveRef.onValue(snapshot => {
-            const data = snapshot.val();
-            reserveList = data ? Object.values(data) : [];
-            if (selectDate) generateTimeList();
-        });
+        reserveRef.on('value', function(snapshot) {
+    const data = snapshot.val();
+    reserveList = data ? Object.values(data) : [];
+    if (selectDate) generateTimeList();
+});
 
         function submitReserve() {
             const name = document.getElementById("userName").value.trim();
