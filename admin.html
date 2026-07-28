@@ -216,13 +216,13 @@
             margin-bottom:25px;
         }
     </style>
-    <!-- Firebase CDN -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"></script>
+    <!-- Firebase 9 compat 相容CDN -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script>
         // ========== 替換成你自己的 Firebase Config ==========
         const firebaseConfig = {
-           apiKey: "AIzaSyA31U_eQqVVgUuoUU5-7rkyEthLJ1b8sHY",
+            apiKey: "AIzaSyA31U_eQqVVgUuoUU5-7rkyEthLJ1b8sHY",
             authDomain: "aviation-reserve.firebaseapp.com",
             databaseURL: "https://aviation-reserve-default-rtdb.asia-southeast1.firebasedatabase.app/",
             projectId: "aviation-reserve",
@@ -272,11 +272,16 @@
                 <div class="form-group">
                     <label>預約日期 / Reservation Date</label>
                     <select id="adminResDate">
-                        <option value="2026-07-06">2026年07月06日（星期一 / Monday）</option>
-                        <option value="2026-07-07">2026年07月07日（星期二 / Tuesday）</option>
-                        <option value="2026-07-08">2026年07月08日（星期三 / Wednesday）</option>
-                        <option value="2026-07-09">2026年07月09日（星期四 / Thursday）</option>
-                        <option value="2026-07-10">2026年07月10日（星期五 / Friday）</option>
+                        <option value="2026-08-17">2026年08月17日（星期一 / Monday）</option>
+                        <option value="2026-08-18">2026年08月18日（星期二 / Tuesday）</option>
+                        <option value="2026-08-19">2026年08月19日（星期三 / Wednesday）</option>
+                        <option value="2026-08-20">2026年08月20日（星期四 / Thursday）</option>
+                        <option value="2026-08-21">2026年08月21日（星期五 / Friday）</option>
+                        <option value="2026-08-24">2026年08月24日（星期一 / Monday）</option>
+                        <option value="2026-08-25">2026年08月25日（星期二 / Tuesday）</option>
+                        <option value="2026-08-26">2026年08月26日（星期三 / Wednesday）</option>
+                        <option value="2026-08-27">2026年08月27日（星期四 / Thursday）</option>
+                        <option value="2026-08-28">2026年08月28日（星期五 / Friday）</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -307,16 +312,21 @@
                 <button class="btn btn-primary" onclick="adminAddReserve()">確認新增預約 / Confirm Add</button>
             </div>
             <h3>所有預約記錄列表 / All Reservation Records</h3>
-            <!-- 雙重篩選：日期篩選 + 預約時段排序 -->
+            <!-- 雙重篩選：日期篩選 + 時段排序 -->
             <div class="filter-row">
                 <label>按日期篩選 / Filter by Date：</label>
                 <select id="filterDateSelect" onchange="renderReserveTable()">
                     <option value="all">全部日期 / All Dates</option>
-                    <option value="2026-07-06">2026-07-06 星期一</option>
-                    <option value="2026-07-07">2026-07-07 星期二</option>
-                    <option value="2026-07-08">2026-07-08 星期三</option>
-                    <option value="2026-07-09">2026-07-09 星期四</option>
-                    <option value="2026-07-10">2026-07-10 星期五</option>
+                    <option value="2026-08-17">2026-08-17 星期一</option>
+                    <option value="2026-08-18">2026-08-18 星期二</option>
+                    <option value="2026-08-19">2026-08-19 星期三</option>
+                    <option value="2026-08-20">2026-08-20 星期四</option>
+                    <option value="2026-08-21">2026-08-21 星期五</option>
+                    <option value="2026-08-24">2026-08-24 星期一</option>
+                    <option value="2026-08-25">2026-08-25 星期二</option>
+                    <option value="2026-08-26">2026-08-26 星期三</option>
+                    <option value="2026-08-27">2026-08-27 星期四</option>
+                    <option value="2026-08-28">2026-08-28 星期五</option>
                 </select>
                 <label>時段排序 / Time Sort：</label>
                 <select id="sortTimeSelect" onchange="renderReserveTable()">
@@ -351,6 +361,7 @@
         openBtn.addEventListener('click',openMobileMenu);
         closeBtn.addEventListener('click',closeMobileMenu);
         mask.addEventListener('click',closeMobileMenu);
+
         const ADMIN_PWD = "3735";
         let reserveList = [];
         let reserveMap = {}; // key: firebase唯一id
@@ -368,13 +379,15 @@
             "16:30-17:00",
             "17:00-17:30"
         ];
+
         function formatTime(timestamp){
             if(!timestamp) return "";
             const d = new Date(timestamp);
             return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
         }
-        // 實時監聽雲端數據
-        reserveRef.onValue(snapshot=>{
+
+        // 實時監聽雲端數據（compat 標準 .on('value')）
+        reserveRef.on('value', function(snapshot){
             reserveList = [];
             reserveMap = {};
             snapshot.forEach(child=>{
@@ -388,6 +401,7 @@
                 renderReserveTable();
             }
         });
+
         function renderReserveTable() {
             const tbody = document.getElementById("adminTableBody");
             const filterVal = document.getElementById("filterDateSelect").value;
@@ -422,6 +436,7 @@
                 tbody.appendChild(tr);
             })
         }
+
         function adminLogin() {
             const pwd = document.getElementById("adminPwd").value.trim();
             const msg = document.getElementById("loginMsg");
@@ -437,6 +452,7 @@
                 msg.className = "msg error";
             }
         }
+
         function adminAddReserve(){
             const date = document.getElementById("adminResDate").value;
             const time = document.getElementById("adminResTime").value;
@@ -474,6 +490,7 @@
                 msg.className = "msg error";
             });
         }
+
         function delReserve(key){
             if(confirm("確定刪除此筆預約？")){
                 reserveRef.child(key).remove().then(()=>{
@@ -483,6 +500,7 @@
                 })
             }
         }
+
         function switchTab(tabId){
             document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
             document.getElementById(tabId).classList.add("active");
