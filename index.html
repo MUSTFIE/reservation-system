@@ -4,213 +4,414 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>智能航空仿真前沿技術聯合研究中心 - 參觀預約系統 | Intelligent Aviation Simulation Advanced Technology Joint Research Center - Visit Reservation System</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
+        :root {
+            --primary: #0f172a;
+            --primary-light: #1e293b;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --accent-light: #eff6ff;
+            --success: #10b981;
+            --success-light: #ecfdf5;
+            --warning: #f59e0b;
+            --warning-light: #fffbeb;
+            --danger: #ef4444;
+            --danger-light: #fef2f2;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-900: #0f172a;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: "Microsoft JhengHei", sans-serif;
+            font-family: 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif;
         }
+
         body {
-            background-color: #f5f7fa;
-            color: #333;
-            line-height: 1.6;
-            padding: 20px;
+            background: linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 100%);
+            color: var(--gray-700);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
         }
+
         .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
-            padding: 30px;
-        }
-        h1 {
-            text-align: center;
-            color: #1a5276;
-            margin-bottom: 30px;
-            font-size: 24px;
-        }
-        h2 {
-            color: #283747;
-            margin: 20px 0 15px;
-            font-size: 20px;
-            border-left: 4px solid #2980b9;
-            padding-left: 10px;
-        }
-        .tip-box {
-            background-color: #e8f4fc;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            color: #21618c;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-        input, select {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 16px;
+            max-width: 900px;
+            background: #ffffff;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.8);
         }
-        .btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .btn-primary {
-            background-color: #2980b9;
+
+        /* Header Styling */
+        .header-banner {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
             color: #fff;
+            padding: 36px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
         }
-        .btn-primary:hover {
-            background-color: #1a5276;
+
+        .header-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+            transform: rotate(30deg);
+            pointer-events: none;
         }
+
+        .header-banner h1 {
+            font-size: 22px;
+            font-weight: 700;
+            line-height: 1.5;
+            margin-bottom: 8px;
+            letter-spacing: -0.01em;
+        }
+
+        .header-banner h1 span {
+            display: block;
+            font-size: 13px;
+            font-weight: 400;
+            color: var(--gray-300);
+            margin-top: 6px;
+        }
+
+        /* Content Body */
+        .content-body {
+            padding: 40px;
+        }
+
         .tab {
             display: none;
+            animation: fadeIn 0.3s ease-in-out forwards;
         }
+
         .tab.active {
             display: block;
         }
-        .date-list {
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Tip Box */
+        .tip-box {
+            background-color: var(--accent-light);
+            border-left: 4px solid var(--accent);
+            padding: 20px;
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            margin-bottom: 30px;
+            color: #1e40af;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .tip-box strong {
+            display: block;
+            font-size: 15px;
+            margin-bottom: 8px;
+            color: #1e3a8a;
+        }
+
+        /* Form Controls */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        label {
             display: flex;
-            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--gray-900);
+        }
+
+        label i {
+            color: var(--accent);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            color: var(--gray-900);
+            background-color: var(--gray-50);
+            transition: var(--transition);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent);
+            background-color: #fff;
+            box-shadow: 0 0 0 4px var(--accent-light);
+        }
+
+        /* Date List Grid */
+        .date-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
             gap: 12px;
             margin-top: 8px;
         }
+
         .date-item {
-            padding: 10px 18px;
-            border: 1px solid #2980b9;
-            border-radius: 6px;
+            padding: 14px 16px;
+            border: 1px solid var(--gray-200);
+            background-color: var(--gray-50);
+            border-radius: var(--radius-sm);
             cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .date-item.selected {
-            background-color: #2980b9;
-            color: #fff;
-        }
-        .time-item {
-            display: inline-block;
-            padding: 8px 15px;
-            margin: 8px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .time-item.available {
-            background-color: #27ae60;
-            color: #fff;
-            border: 1px solid #27ae60;
-        }
-        .time-item.half {
-            background-color: #f39c12;
-            color: #fff;
-            border: 1px solid #f39c12;
-        }
-        .time-item.full {
-            background-color: #95a5a6;
-            color: #fff;
-            cursor: not-allowed;
-            border: 1px solid #95a5a6;
-        }
-        .time-item.selected {
-            background-color: #e74c3c !important;
-            border-color: #e74c3c !important;
-            color: #fff !important;
-            box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.4);
-            transform: scale(1.03);
-        }
-        .msg {
-            margin: 15px 0;
-            padding: 12px;
-            border-radius: 6px;
-            display: none;
-        }
-        .success {
-            background-color: #d5f5e3;
-            color: #1e8449;
-            display: block;
-        }
-        .error {
-            background-color: #fadbd8;
-            color: #c0392b;
-            display: block;
-            text-align: left;
-        }
-        .status-desc {
-            margin: 10px 0;
+            transition: var(--transition);
             font-size: 14px;
+            font-weight: 500;
+            text-align: center;
+            color: var(--gray-700);
+        }
+
+        .date-item:hover {
+            border-color: var(--accent);
+            background-color: var(--accent-light);
+            color: var(--accent);
+        }
+
+        .date-item.selected {
+            background-color: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Status & Legend */
+        .status-desc {
+            margin: 12px 0 16px 0;
+            font-size: 13px;
             display: flex;
             gap: 20px;
             flex-wrap: wrap;
+            background: var(--gray-50);
+            padding: 12px 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--gray-200);
         }
+
         .status-item {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
+            font-weight: 500;
+            color: var(--gray-600);
         }
+
         .status-block {
-            width: 16px;
-            height: 16px;
-            border-radius: 3px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
         }
+
+        /* Time List Grid */
+        #timeList {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .time-item {
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .time-item.available {
+            background-color: var(--success-light);
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        .time-item.available:hover {
+            background-color: #a7f3d0;
+        }
+
+        .time-item.half {
+            background-color: var(--warning-light);
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+        .time-item.half:hover {
+            background-color: #fde68a;
+        }
+
+        .time-item.full {
+            background-color: var(--gray-100);
+            color: var(--gray-400);
+            cursor: not-allowed;
+            border: 1px solid var(--gray-200);
+            opacity: 0.7;
+        }
+
+        .time-item.selected {
+            background-color: var(--accent) !important;
+            border-color: var(--accent) !important;
+            color: #fff !important;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Messages */
+        .msg {
+            margin: 20px 0;
+            padding: 14px 16px;
+            border-radius: var(--radius-sm);
+            display: none;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .msg.success {
+            background-color: var(--success-light);
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+            display: block;
+        }
+        .msg.error {
+            background-color: var(--danger-light);
+            color: #991b1b;
+            border: 1px solid #fecaca;
+            display: block;
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--accent);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* Result Box Styling */
         .result-box {
             text-align: center;
-            padding: 40px 20px;
+            padding: 20px 10px;
         }
+
         .result-box h2 {
+            font-size: 24px;
+            color: var(--success);
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
             border: none;
-            text-align: center;
-            font-size: 26px;
-            color: #27ae60;
-            margin-bottom: 20px;
+            padding: 0;
         }
+
         .result-info {
-            font-size: 18px;
-            line-height: 2.2;
-            margin: 30px 0;
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-md);
+            padding: 24px;
+            font-size: 15px;
+            line-height: 2;
+            margin-bottom: 24px;
             text-align: left;
         }
-        .back-btn {
-            margin-top: 30px;
+
+        .save-tip {
+            color: var(--accent);
+            font-size: 14px;
+            font-weight: 500;
+            margin-bottom: 24px;
+            padding: 10px 16px;
+            background: var(--accent-light);
+            border-radius: var(--radius-sm);
+            display: inline-block;
         }
-        .save-tip{
-            color:#2980b9;
-            font-size:16px;
-            font-weight:500;
-            margin:15px 0;
-            padding:8px;
-            background:#f0f7fc;
-            border-radius:6px;
-            display:inline-block;
+
+        .back-btn {
+            max-width: 300px;
+            margin: 0 auto;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+            .content-body {
+                padding: 20px;
+            }
+            .header-banner {
+                padding: 24px 20px;
+            }
+            .header-banner h1 {
+                font-size: 18px;
+            }
+            .date-list {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 
-    <!-- Firebase 9 compat 相容CDN -->
+    <!-- Firebase 9 compat 相容CDN，無import/export報錯 -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    
-    <!-- EmailJS SDK CDN -->
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-
     <script>
-        // 初始化 EmailJS (請將 "YOUR_PUBLIC_KEY" 替換為你在 EmailJS 取得的 Public Key)
-        (function() {
-            emailjs.init({
-                publicKey: "UiXjikCJqUoq-Bsbu",
-            });
-        })();
-
-        // ========== Firebase Config ==========
+        // ========== 替換成你自己的 Firebase Config ==========
         const firebaseConfig = {
             apiKey: "AIzaSyA31U_eQqVVgUuoUU5-7rkyEthLJ1b8sHY",
             authDomain: "aviation-reserve.firebaseapp.com",
@@ -227,64 +428,92 @@
 </head>
 <body>
     <div class="container">
-        <h1>智能航空仿真前沿技術聯合研究中心 參觀預約系統<br>MUST Joint Research Center for Frontier Technologies in Intelligent Aviation Simulation - Visit Reservation System</h1>
-        <div id="userTab" class="tab active">
-            <div class="tip-box">
-                <strong>預約須知 / Reservation Notice：</strong><br />
-                1. 預約開放時間 / Booking Period：2026年8月17日 - 8月21日、8月24日 - 8月28日<br />
-                2. 開放時段 / Opening Hours：每日 09:30-12:30、15:00-17:30 (Daily)<br />
-                3. 每30分鐘為一個預約時段，單一時段限2人預約，額滿即止 / Each time slot lasts 30 minutes, max 2 persons per slot. 
-            </div>
-            <div class="form-group">
-                <label>選擇參觀日期 / Select Visit Date</label>
-                <div class="date-list" id="dateList"></div>
-            </div>
-            <div class="form-group">
-                <label>選擇參觀時段（每節30分鐘，限2人）/ Select Time Slot (30 mins, max 2 persons)</label>
-                <div class="status-desc">
-                    <div class="status-item">
-                        <span class="status-block" style="background:#27ae60;"></span>
-                        <span>可預約 / Available</span>
-                    </div>
-                    <div class="status-item">
-                        <span class="status-block" style="background:#f39c12;"></span>
-                        <span>剩餘1名額 / 1 Spot Left</span>
-                    </div>
-                    <div class="status-item">
-                        <span class="status-block" style="background:#95a5a6;"></span>
-                        <span>已額滿 / Full</span>
-                    </div>
-                </div>
-                <div id="timeList"></div>
-            </div>
-            <div class="form-group">
-                <label>預約人姓名 / Visitor Name</label>
-                <input type="text" id="userName" placeholder="請輸入全名 / Please enter full name">
-            </div>
-            <div class="form-group">
-                <label>聯繫電郵 / Email Address</label>
-                <input type="email" id="userEmail" placeholder="範例：acac@must.edu.mo">
-            </div>
-            <div class="msg" id="resMsg"></div>
-            <button class="btn btn-primary" onclick="submitReserve()">提交預約 / Submit Reservation</button>
+        <div class="header-banner">
+            <h1>
+                智能航空仿真前沿技術聯合研究中心 參觀預約系統
+                <span>MUST Joint Research Center for Frontier Technologies in Intelligent Aviation Simulation - Visit Reservation System</span>
+            </h1>
         </div>
-        <div id="resultTab" class="tab">
-            <div class="result-box">
-                <h2>✅ 預約成功 / Reservation Successful</h2>
-                <div class="result-info" id="resultInfo"></div>
-                <div class="save-tip">💡 請自行截圖留存預約憑證 / You may screenshot this page as your reservation proof</div>
-                <button class="btn btn-primary back-btn" onclick="backUserPage()">返回預約首頁 / Back to Homepage</button>
+        
+        <div class="content-body">
+            <div id="userTab" class="tab active">
+                <div class="tip-box">
+                    <strong><i class="fa-solid fa-circle-info"></i> 預約須知 / Reservation Notice：</strong>
+                    1. 預約開放時間 / Booking Period：2026年8月17日 - 8月21日、8月24日 - 8月28日<br />
+                    2. 開放時段 / Opening Hours：每日 09:30-12:30、15:00-17:30 (Daily)<br />
+                    3. 每30分鐘為一個預約時段，單一時段限2人預約，額滿即止 / Each time slot lasts 30 minutes, max 2 persons per slot. 
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fa-regular fa-calendar-days"></i> 選擇參觀日期 / Select Visit Date</label>
+                    <div class="date-list" id="dateList"></div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fa-regular fa-clock"></i> 選擇參觀時段（每節30分鐘，限2人）/ Select Time Slot (30 mins, max 2 persons)</label>
+                    <div class="status-desc">
+                        <div class="status-item">
+                            <span class="status-block" style="background:#10b981;"></span>
+                            <span>可預約 / Available</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-block" style="background:#f59e0b;"></span>
+                            <span>剩餘1名額 / 1 Spot Left</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-block" style="background:#cbd5e1;"></span>
+                            <span>已額滿 / Full</span>
+                        </div>
+                    </div>
+                    <div id="timeList"></div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fa-regular fa-user"></i> 預約人姓名 / Visitor Name</label>
+                    <input type="text" id="userName" placeholder="請輸入全名 / Please enter full name">
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fa-regular fa-envelope"></i> 聯繫電郵 / Email Address</label>
+                    <input type="email" id="userEmail" placeholder="範例：acac@must.edu.mo">
+                </div>
+
+                <div class="msg" id="resMsg"></div>
+                
+                <button class="btn btn-primary" onclick="submitReserve()">
+                    <i class="fa-solid fa-paper-plane"></i> 提交預約 / Submit Reservation
+                </button>
+            </div>
+
+            <div id="resultTab" class="tab">
+                <div class="result-box">
+                    <h2><i class="fa-solid fa-circle-check"></i> 預約成功 / Reservation Successful</h2>
+                    <div class="result-info" id="resultInfo"></div>
+                    <div class="save-tip"><i class="fa-regular fa-lightbulb"></i> 請自行截圖留存預約憑證 / You may screenshot this page as your reservation proof</div>
+                    <button class="btn btn-primary back-btn" onclick="backUserPage()">
+                        <i class="fa-solid fa-arrow-left"></i> 返回預約首頁 / Back to Homepage
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+
     <script>
         let reserveList = [];
         let selectDate = "";
         let selectTime = "";
-        
+        // 預約日期陣列：8.17-21、8.24-28
         const dateArr = [
-            "2026-08-17", "2026-08-18", "2026-08-19", "2026-08-20", "2026-08-21",
-            "2026-08-24", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-28"
+            "2026-08-17",
+            "2026-08-18",
+            "2026-08-19",
+            "2026-08-20",
+            "2026-08-21",
+            "2026-08-24",
+            "2026-08-25",
+            "2026-08-26",
+            "2026-08-27",
+            "2026-08-28"
         ];
         const dateTextArr = [
             "08月17日（星期一) / Monday, 17 Aug 2026",
@@ -305,14 +534,15 @@
             return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
         }
 
+        // 載入頁面自動渲染日期
         function initDateList() {
             const dateContainer = document.getElementById("dateList");
             dateContainer.innerHTML = "";
             selectDate = "";
             dateArr.forEach((date, index) => {
-                let item = document.createElement("span");
+                let item = document.createElement("div");
                 item.className = "date-item";
-                item.innerText = `2026年${dateTextArr[index]}`;
+                item.innerHTML = `<i class="fa-regular fa-calendar" style="margin-right:6px;"></i> 2026年${dateTextArr[index]}`;
                 item.dataset.date = date;
                 item.onclick = function () {
                     document.querySelectorAll(".date-item").forEach(el => el.classList.remove("selected"));
@@ -326,6 +556,7 @@
             })
         }
 
+        // 讀取雲端最新數據
         function loadLatestData(callback) {
             reserveRef.once("value", snapshot => {
                 const data = snapshot.val();
@@ -336,6 +567,7 @@
             });
         }
 
+        // 渲染時段（重點修復count篩選邏輯）
         function generateTimeList() {
             const timeContainer = document.getElementById("timeList");
             timeContainer.innerHTML = "";
@@ -352,7 +584,7 @@
                 else if (count === 1) statusClass = "half";
                 else statusClass = "full";
 
-                let item = document.createElement("span");
+                let item = document.createElement("div");
                 item.className = `time-item ${statusClass}`;
                 item.innerText = `${time} (${count}/2)`;
                 item.dataset.time = time;
@@ -367,11 +599,13 @@
             })
         }
 
+        // DOM載入完成初始化
         document.addEventListener("DOMContentLoaded", function(){
             initDateList();
             loadLatestData();
         });
 
+        // 實時監聽雲端變化
         reserveRef.on('value', function(snapshot) {
             const data = snapshot.val();
             reserveList = data ? Object.values(data) : [];
@@ -380,6 +614,7 @@
             console.error("監聽錯誤：",err);
         });
 
+        // 提交預約（成功頁時段固定使用臨時變數，不再空白）
         function submitReserve() {
             const name = document.getElementById("userName").value.trim();
             const email = document.getElementById("userEmail").value.trim();
@@ -407,13 +642,15 @@
                 return;
             }
 
+            // 檢查當前時段人數
             const count = reserveList.filter(item => item.date === selectDate && item.time === selectTime).length;
             if(count >= 2){
-                msg.innerText = "該時段已額滿，無法預約 / This time slot is full";
+                msgDom.innerText = "該時段已額滿，無法預約 / This time slot is full";
                 msgDom.className = "msg error";
                 return;
             }
 
+            // 先存當前選擇，再提交
             const tempVisitDate = selectDate;
             const tempVisitTime = selectTime;
 
@@ -439,32 +676,15 @@
                     case "2026-08-27": weekText = "星期四 / Thursday"; break;
                     case "2026-08-28": weekText = "星期五 / Friday"; break;
                 }
-
-                // 準備 EmailJS 發送參數
-                const templateParams = {
-                    to_email: "wwtse@must.edu.mo",
-                    visitor_name: name,
-                    visitor_email: email,
-                    visit_date: `${tempVisitDate} (${weekText})`,
-                    visit_time: tempVisitTime
-                };
-
-                // 呼叫 EmailJS 寄送郵件 (請將 "YOUR_SERVICE_ID" 與 "YOUR_TEMPLATE_ID" 替換成你的實際 ID)
-                emailjs.send("service_z5b0ubx", "template_a9cal5l", templateParams)
-                    .then(() => {
-                        console.log("Email notification sent successfully to wwtse@must.edu.mo");
-                    }, (err) => {
-                        console.error("Failed to send email notification:", err);
-                    });
-
                 const resultHtml = `
-                    <p><strong>預約參觀日期 / Visit Date：</strong>${tempVisitDate}（${weekText}）</p>
-                    <p><strong>預約參觀時段 / Time Slot：</strong>${tempVisitTime}</p>
-                    <p><strong>參觀地點 / Venue：</strong>康澤創新科技中心 / MUST LIU's Innovation and Technology Center</p>
-                    <p style="margin-top:20px; font-size:16px; color:#555;">如有查詢可聯絡 / For inquiries: FIE Fergus<br />聯絡郵箱 / Contact Email：wwtse@must.edu.mo</p>
+                    <p><strong><i class="fa-regular fa-calendar-check" style="color:#2563eb;"></i> 預約參觀日期 / Visit Date：</strong>${tempVisitDate}（${weekText}）</p>
+                    <p><strong><i class="fa-regular fa-clock" style="color:#2563eb;"></i> 預約參觀時段 / Time Slot：</strong>${tempVisitTime}</p>
+                    <p><strong><i class="fa-solid fa-location-dot" style="color:#2563eb;"></i> 參觀地點 / Venue：</strong>康澤創新科技中心 / MUST LIU's Innovation and Technology Center</p>
+                    <p style="margin-top:16px; font-size:14px; color:#475569; border-top:1px solid #e2e8f0; padding-top:12px;"><strong>如有查詢可聯絡 / For inquiries:</strong> FIE Fergus<br /><strong>聯絡郵箱 / Contact Email：</strong>wwtse@must.edu.mo</p>
                 `;
                 document.getElementById("resultInfo").innerHTML = resultHtml;
 
+                // 渲染完才清空全域變數
                 selectDate = "";
                 selectTime = "";
                 document.getElementById("userName").value = "";
