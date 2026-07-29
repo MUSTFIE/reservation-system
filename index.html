@@ -22,7 +22,7 @@
             margin: 0 auto;
             background: #fff;
             border-radius: 12px;
-            box-shadow: 0 2px 15px rgba(0,0,0.1);
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
             padding: 30px;
         }
         h1 {
@@ -195,11 +195,22 @@
         }
     </style>
 
-    <!-- Firebase 9 compat 相容CDN，無import/export報錯 -->
+    <!-- Firebase 9 compat 相容CDN -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    
+    <!-- EmailJS SDK CDN -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
     <script>
-        // ========== 替換成你自己的 Firebase Config ==========
+        // 初始化 EmailJS (請將 "YOUR_PUBLIC_KEY" 替換為你在 EmailJS 取得的 Public Key)
+        (function() {
+            emailjs.init({
+                publicKey: "UiXjikCJqUoq-Bsbu",
+            });
+        })();
+
+        // ========== Firebase Config ==========
         const firebaseConfig = {
             apiKey: "AIzaSyA31U_eQqVVgUuoUU5-7rkyEthLJ1b8sHY",
             authDomain: "aviation-reserve.firebaseapp.com",
@@ -270,18 +281,10 @@
         let reserveList = [];
         let selectDate = "";
         let selectTime = "";
-        // 預約日期陣列：8.17-21、8.24-28
+        
         const dateArr = [
-            "2026-08-17",
-            "2026-08-18",
-            "2026-08-19",
-            "2026-08-20",
-            "2026-08-21",
-            "2026-08-24",
-            "2026-08-25",
-            "2026-08-26",
-            "2026-08-27",
-            "2026-08-28"
+            "2026-08-17", "2026-08-18", "2026-08-19", "2026-08-20", "2026-08-21",
+            "2026-08-24", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-28"
         ];
         const dateTextArr = [
             "08月17日（星期一) / Monday, 17 Aug 2026",
@@ -302,7 +305,6 @@
             return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
         }
 
-        // 載入頁面自動渲染日期
         function initDateList() {
             const dateContainer = document.getElementById("dateList");
             dateContainer.innerHTML = "";
@@ -324,7 +326,6 @@
             })
         }
 
-        // 讀取雲端最新數據
         function loadLatestData(callback) {
             reserveRef.once("value", snapshot => {
                 const data = snapshot.val();
@@ -335,7 +336,6 @@
             });
         }
 
-        // 渲染時段（重點修復count篩選邏輯）
         function generateTimeList() {
             const timeContainer = document.getElementById("timeList");
             timeContainer.innerHTML = "";
@@ -346,7 +346,6 @@
             if (!selectDate) return;
 
             allTimes.forEach(time => {
-                // 修正：同時匹配日期+時段，不再只判斷日期
                 let count = reserveList.filter(item => item.date === selectDate && item.time === time).length;
                 let statusClass = "";
                 if (count === 0) statusClass = "available";
@@ -368,13 +367,11 @@
             })
         }
 
-        // DOM載入完成初始化
         document.addEventListener("DOMContentLoaded", function(){
             initDateList();
             loadLatestData();
         });
 
-        // 實時監聽雲端變化
         reserveRef.on('value', function(snapshot) {
             const data = snapshot.val();
             reserveList = data ? Object.values(data) : [];
@@ -383,7 +380,6 @@
             console.error("監聽錯誤：",err);
         });
 
-        // 提交預約（成功頁時段固定使用臨時變數，不再空白）
         function submitReserve() {
             const name = document.getElementById("userName").value.trim();
             const email = document.getElementById("userEmail").value.trim();
@@ -411,7 +407,6 @@
                 return;
             }
 
-            // 檢查當前時段人數
             const count = reserveList.filter(item => item.date === selectDate && item.time === selectTime).length;
             if(count >= 2){
                 msg.innerText = "該時段已額滿，無法預約 / This time slot is full";
@@ -419,7 +414,6 @@
                 return;
             }
 
-            // 先存當前選擇，再提交
             const tempVisitDate = selectDate;
             const tempVisitTime = selectTime;
 
@@ -445,7 +439,24 @@
                     case "2026-08-27": weekText = "星期四 / Thursday"; break;
                     case "2026-08-28": weekText = "星期五 / Friday"; break;
                 }
-                // 使用臨時變數渲染，永遠不會空白
+
+                // 準備 EmailJS 發送參數
+                const templateParams = {
+                    to_email: "wwtse@must.edu.mo",
+                    visitor_name: name,
+                    visitor_email: email,
+                    visit_date: `${tempVisitDate} (${weekText})`,
+                    visit_time: tempVisitTime
+                };
+
+                // 呼叫 EmailJS 寄送郵件 (請將 "YOUR_SERVICE_ID" 與 "YOUR_TEMPLATE_ID" 替換成你的實際 ID)
+                emailjs.send("service_z5b0ubx", "template_a9cal5l", templateParams)
+                    .then(() => {
+                        console.log("Email notification sent successfully to wwtse@must.edu.mo");
+                    }, (err) => {
+                        console.error("Failed to send email notification:", err);
+                    });
+
                 const resultHtml = `
                     <p><strong>預約參觀日期 / Visit Date：</strong>${tempVisitDate}（${weekText}）</p>
                     <p><strong>預約參觀時段 / Time Slot：</strong>${tempVisitTime}</p>
@@ -454,7 +465,6 @@
                 `;
                 document.getElementById("resultInfo").innerHTML = resultHtml;
 
-                // 渲染完才清空全域變數
                 selectDate = "";
                 selectTime = "";
                 document.getElementById("userName").value = "";
