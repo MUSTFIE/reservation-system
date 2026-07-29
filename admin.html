@@ -158,6 +158,13 @@
         .btn-primary:hover {
             background-color: #1a5276;
         }
+        .btn-success {
+            background-color: #27ae60;
+            color: #fff;
+        }
+        .btn-success:hover {
+            background-color: #1e8449;
+        }
         .btn-danger {
             background-color: #e74c3c;
             color: #fff;
@@ -167,6 +174,10 @@
         }
         .btn-gray {
             background:#ccc;
+            color: #333;
+        }
+        .btn-gray:hover {
+            background: #b3b3b3;
         }
         .tab {
             display: none;
@@ -214,6 +225,14 @@
             padding:20px;
             border-radius:8px;
             margin-bottom:25px;
+        }
+        .action-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
     </style>
     <!-- Firebase 9 compat 相容CDN -->
@@ -347,7 +366,10 @@
                 </thead>
                 <tbody id="adminTableBody"></tbody>
             </table>
-            <button class="btn btn-gray" style="margin-top:20px" onclick="location.href='index.html'">返回預約頁面 / Back to Reservation Page</button>
+            <div class="action-bar">
+                <button class="btn btn-success" onclick="exportCSV()">📥 導出預約紀錄 (CSV) / Export CSV</button>
+                <button class="btn btn-gray" onclick="location.href='index.html'">返回預約頁面 / Back to Reservation Page</button>
+            </div>
         </div>
     </div>
     <script>
@@ -386,6 +408,27 @@
             return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
         }
 
+        // 取得目前篩選與排序後的資料陣列（共用邏輯）
+        function getFilteredAndSortedList() {
+            const filterVal = document.getElementById("filterDateSelect").value;
+            const sortType = document.getElementById("sortTimeSelect").value;
+            
+            let showList = [...reserveList];
+            if(filterVal !== "all"){
+                showList = showList.filter(item => item.date === filterVal);
+            }
+            showList.sort((a,b)=>{
+                const idxA = timeOrder.indexOf(a.time);
+                const idxB = timeOrder.indexOf(b.time);
+                if(sortType === "timeAsc"){
+                    return idxA - idxB;
+                }else{
+                    return idxB - idxA;
+                }
+            });
+            return showList;
+        }
+
         // 實時監聽雲端數據（compat 標準 .on('value')）
         reserveRef.on('value', function(snapshot){
             reserveList = [];
@@ -404,25 +447,10 @@
 
         function renderReserveTable() {
             const tbody = document.getElementById("adminTableBody");
-            const filterVal = document.getElementById("filterDateSelect").value;
-            const sortType = document.getElementById("sortTimeSelect").value;
             tbody.innerHTML = "";
-            // 1. 先按日期篩選
-            let showList = reserveList;
-            if(filterVal !== "all"){
-                showList = reserveList.filter(item => item.date === filterVal);
-            }
-            // 2. 按預約時段先後排序
-            showList.sort((a,b)=>{
-                const idxA = timeOrder.indexOf(a.time);
-                const idxB = timeOrder.indexOf(b.time);
-                if(sortType === "timeAsc"){
-                    return idxA - idxB;
-                }else{
-                    return idxB - idxA;
-                }
-            });
-            // 3. 渲染表格
+            const showList = getFilteredAndSortedList();
+
+            // 渲染表格
             showList.forEach((item)=>{
                 const tr = document.createElement("tr");
                 tr.innerHTML = `
@@ -435,6 +463,44 @@
                 `;
                 tbody.appendChild(tr);
             })
+        }
+
+        // 導出目前顯示清單成 CSV 檔案
+        function exportCSV() {
+            const showList = getFilteredAndSortedList();
+            if(showList.length === 0) {
+                alert("目前沒有可導出的預約紀錄！");
+                return;
+            }
+
+            // CSV 標頭
+            let csvContent = "\uFEFF"; // 加入 BOM 讓 Excel 正確識別 UTF-8 中文
+            csvContent += "預約日期,預約時段,預約人姓名,預約郵箱,填表提交時間\n";
+
+            // 組合內容
+            showList.forEach(item => {
+                const date = `"${item.date || ''}"`;
+                const time = `"${item.time || ''}"`;
+                const name = `"${(item.name || '').replace(/"/g, '""')}"`;
+                const email = `"${item.email || ''}"`;
+                const createTime = `"${formatTime(item.createTime)}"`;
+                
+                csvContent += `${date},${time},${name},${email},${createTime}\n`;
+            });
+
+            // 建立下載連結
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('href', url);
+            
+            const filterVal = document.getElementById("filterDateSelect").value;
+            const fileName = filterVal === 'all' ? 'all_reservations.csv' : `reservations_${filterVal}.csv`;
+            a.setAttribute('download', fileName);
+            
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
 
         function adminLogin() {
