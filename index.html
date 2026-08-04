@@ -203,7 +203,7 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
     <script>
-        // 初始化 EmailJS (請將 "YOUR_PUBLIC_KEY" 替換為你在 EmailJS 取得的 Public Key)
+        // 初始化 EmailJS
         (function() {
             emailjs.init({
                 publicKey: "UiXjikCJqUoq-Bsbu",
@@ -231,7 +231,7 @@
         <div id="userTab" class="tab active">
             <div class="tip-box">
                 <strong>預約須知 / Reservation Notice：</strong><br />
-                1. 預約開放時間 / Booking Period：2026年8月17日 - 8月21日、8月24日 - 8月28日<br />
+                1. 預約開放時間 / Booking Period：2026年8月13日 - 8月14日、8月17日 - 8月21日、8月24日 - 8月25日<br />
                 2. 開放時段 / Opening Hours：每日 09:30-12:30、15:00-17:30 (Daily)<br />
                 3. 每30分鐘為一個預約時段，單一時段限2人預約，額滿即止 / Each time slot lasts 30 minutes, max 2 persons per slot. 
             </div>
@@ -283,20 +283,20 @@
         let selectTime = "";
         
         const dateArr = [
+            "2026-08-13", "2026-08-14",
             "2026-08-17", "2026-08-18", "2026-08-19", "2026-08-20", "2026-08-21",
-            "2026-08-24", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-28"
+            "2026-08-24", "2026-08-25"
         ];
         const dateTextArr = [
+            "08月13日（星期四) / Thursday, 13 Aug 2026",
+            "08月14日（星期五) / Friday, 14 Aug 2026",
             "08月17日（星期一) / Monday, 17 Aug 2026",
             "08月18日（星期二)/ Tuesday, 18 Aug 2026",
             "08月19日（星期三) / Wednesday, 19 Aug 2026",
             "08月20日（星期四) / Thursday, 20 Aug 2026",
             "08月21日（星期五) / Friday, 21 Aug 2026",
             "08月24日（星期一) / Monday, 24 Aug 2026",
-            "08月25日（星期二)/ Tuesday, 25 Aug 2026",
-            "08月26日（星期三) / Wednesday, 26 Aug 2026",
-            "08月27日（星期四) / Thursday, 27 Aug 2026",
-            "08月28日（星期五) / Friday, 28 Aug 2026"
+            "08月25日（星期二)/ Tuesday, 25 Aug 2026"
         ];
 
         function formatTime(timestamp){
@@ -409,7 +409,7 @@
 
             const count = reserveList.filter(item => item.date === selectDate && item.time === selectTime).length;
             if(count >= 2){
-                msg.innerText = "該時段已額滿，無法預約 / This time slot is full";
+                msgDom.innerText = "該時段已額滿，無法預約 / This time slot is full";
                 msgDom.className = "msg error";
                 return;
             }
@@ -428,6 +428,8 @@
             reserveRef.push(newReserve).then(()=>{
                 let weekText = "";
                 switch(tempVisitDate){
+                    case "2026-08-13": weekText = "星期四 / Thursday"; break;
+                    case "2026-08-14": weekText = "星期五 / Friday"; break;
                     case "2026-08-17": weekText = "星期一 / Monday"; break;
                     case "2026-08-18": weekText = "星期二 / Tuesday"; break;
                     case "2026-08-19": weekText = "星期三 / Wednesday"; break;
@@ -435,9 +437,6 @@
                     case "2026-08-21": weekText = "星期五 / Friday"; break;
                     case "2026-08-24": weekText = "星期一 / Monday"; break;
                     case "2026-08-25": weekText = "星期二 / Tuesday"; break;
-                    case "2026-08-26": weekText = "星期三 / Wednesday"; break;
-                    case "2026-08-27": weekText = "星期四 / Thursday"; break;
-                    case "2026-08-28": weekText = "星期五 / Friday"; break;
                 }
 
                 // 準備 EmailJS 發送參數
@@ -449,7 +448,7 @@
                     visit_time: tempVisitTime
                 };
 
-                // 呼叫 EmailJS 寄送郵件 (請將 "YOUR_SERVICE_ID" 與 "YOUR_TEMPLATE_ID" 替換成你的實際 ID)
+                // 呼叫 EmailJS 寄送郵件
                 emailjs.send("service_z5b0ubx", "template_a9cal5l", templateParams)
                     .then(() => {
                         console.log("Email notification sent successfully to wwtse@must.edu.mo");
